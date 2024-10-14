@@ -1,0 +1,51 @@
+/* custom-styles.css */
+
+/* Apply mix-blend-mode to fade content */
+
+.mix-blend-difference {
+
+  mix-blend-mode: difference;
+
+}
+
+/* Smooth transition for background color change */
+
+.transition-colors {
+
+  transition-property: background-color;
+
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+
+  transition-duration: 300ms;
+
+}
+
+/* Custom class for text that should remain visible during fade */
+
+.text-fade-resistant {
+
+  transition: color 0.3s ease;
+
+}
+
+/* Adjust text color based on background brightness */
+
+@media (prefers-color-scheme: light) {
+
+  .text-fade-resistant {
+
+    color: black;
+
+  }
+
+}
+
+@media (prefers-color-scheme: dark) {
+
+  text-fade-resistant {
+
+    color: white;
+
+  }
+
+}
