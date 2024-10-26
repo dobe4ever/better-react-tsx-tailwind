@@ -1,3 +1,5 @@
+const { color } = require('framer-motion')
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -106,10 +108,11 @@ module.exports = {
         },
         // Logo text 'Better You'
         '.text-logo': {
+          color: '#FFFFFF',
           textAlign: 'center',
-          fontSize: '2rem',
-          lineHeight: '1.2rem',
-          fontWeight: '700',
+          fontSize: '1.2rem',
+          lineWeight: '0.5rem',
+          fontWeight: '900',
           fontFamily: 'Poppins, sans-serif',
         },
         // Logo subline 'EVERYDAY'
@@ -122,24 +125,24 @@ module.exports = {
           letterSpacing: '0.4em',
         },
         '.text-title-orange': {
-          fontSize: '22px',
+          fontSize: '20px',
           lineHeight: '1', // 1 =  lineHeight to fontSize ratio (40px)
           fontWeight: '900',
           fontFamily: 'Nunito, sans-serif',
           backgroundClip: 'text',
-          backgroundImage: 'linear-gradient(45deg, #FF5300, #FFB700)',
+          backgroundImage: 'linear-gradient(45deg, #fb9a47, #fa8730 )',
           textAlign: 'center',
           color: 'transparent',
         },
         '.text-title-white': {
-          fontSize: '40px',
+          fontSize: '20px',
           lineHeight: '1', // 1 =  lineHeight to fontSize ratio (40px)
           fontWeight: '900',
           fontFamily: 'Nunito, sans-serif',
-          backgroundClip: 'text',
-          backgroundImage: 'linear-gradient(45deg, #FFF3E2, #FFFFE2, #FFFFFF)',
-          textAlign: 'left',
-          color: 'transparent',
+          //backgroundClip: 'text',
+          //backgroundImage: 'linear-gradient(45deg, #FFF3E2, #FFFFE2, #FFFFFF)',
+          textAlign: 'center',
+          color: 'white',
         },
         '.text-title-yellow': {
           fontSize: '40px',

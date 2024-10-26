@@ -1,278 +1,351 @@
-// App.tsx v3
 import * as React from 'react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, ReactNode } from 'react';
 import { motion } from 'framer-motion'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle2, Check, Sparkles, Trophy, Zap, X, ChevronRight, Menu, Bell, Calendar, BarChart, Search, User } from 'lucide-react'
-import { Progress } from "@/components/ui/progress"
+import { ChevronRight, Send, Smile, Meh, Frown, X, Menu, Bell, Search, Mic, UserCircle, Bot } from 'lucide-react'
+//import { Widget } from '../components/ui/Widget';
+
+
+interface WidgetProps {
+  title: string;
+  children: ReactNode;
+  onClick?: () => void;
+  rightIcon?: ReactNode;
+  className?: string;
+}
+
+const Widget = ({ 
+  title, 
+  children, 
+  onClick, 
+  rightIcon = <ChevronRight size={16} className="text-orange-400 group-hover:transform group-hover:translate-x-1 transition-transform" />,
+  className = ""
+}: WidgetProps) => {
+  return (
+    <div className={`bg-white rounded-md p-4 border shadow- ${onClick ? 'cursor-pointer' : ''} group ${className}`}>
+      <div className="flex justify-between items-center mb-0">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        {rightIcon}
+      </div>
+      {children}
+    </div>
+  );
+};
+
 
 export default function Component() {
-  const [isHabitsListOpen, setIsHabitsListOpen] = useState(false)
-  const [isTodosListOpen, setIsTodosListOpen] = useState(false)
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
-  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false)
-  const [isNotificationVisible, setIsNotificationVisible] = useState(true)
   const [scrollPosition, setScrollPosition] = useState(0)
-  const headerRef = useRef(null)
+  const headerRef = useRef<HTMLDivElement | null>(null)
+  const [mood, setMood] = useState<string | null>(null);
+  const [input, setInput] = useState('');
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientX)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.touches[0].clientX)
+  }
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > 50
+    const isRightSwipe = distance < -50
+
+    if (isLeftSwipe && activeSlide < 2) {
+      setActiveSlide(prev => prev + 1)
+    }
+    if (isRightSwipe && activeSlide > 0) {
+      setActiveSlide(prev => prev - 1)
+    }
+
+    setTouchStart(null)
+    setTouchEnd(null)
+  }
 
   useEffect(() => {
     const handleScroll = () => {
-      const position = window.pageYOffset;
-      setScrollPosition(position)
-    }
+      const position = window.scrollY;
+      setScrollPosition(position);
+    };
+
+    // Set initial scroll position
+    handleScroll();
 
     window.addEventListener('scroll', handleScroll);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('scroll', handleScroll);
     };
-  }, [])
+  }, []);
 
-  const headerHeight = headerRef.current ? headerRef.current.offsetHeight : 0
-  const fadePercentage = Math.min((scrollPosition / headerHeight) * 100, 100)
+  const headerHeight = headerRef.current ? headerRef.current.offsetHeight : 0;
+  const fadePercentage = headerHeight ? Math.max(100 - (scrollPosition / headerHeight) * 100, 0) : 100;
 
+  // Rendering starts here...
   return (
-    // Main
-    <div className="bg-gradient-to-br from-white via-gray-200 to-gray-400 min-h-screen w-full">
+    // Main container
+    <div className="bg-gradient-to-r from-orange-400 via-orange-300 to-orange-500 min-h-screen w-full relative">
+      {/* White overlay for fading effect */}
+      <div 
+        className="absolute inset-0 bg-white transition-opacity duration-300 ease-in-out z-10"
+        style={{ opacity: `${1 - fadePercentage / 100}` }}
+      ></div>
 
-      {/* Header content */}
-      <div className="flex flex-col items-center justify-center space-y-6 w-full">
+      {/* Content wrapper */}
+      <div className={`relative z-20 transition-colors duration-300 ease-in-out ${fadePercentage === 0 ? 'bg-white' : ''}`}>
 
-        <motion.div className="box-border md:box-content w-full overflow-hidden">
+        {/* Header component */}
+        <div className="container mx-auto"> 
+          <div 
+            ref={headerRef}
+            className="flex flex-col items-center justify-center transition-opacity duration-300" 
+            style={{ opacity: `${fadePercentage / 100}` }}
+          >
+            {/* Skewed orange overlay */}
+            <div className="absolute -top-5 left-0 right-0 h-[15vh] bg-orange-900/25 origin-top-left transform -skew-y-6"></div>
 
-          <div className="w-full min-h-screen-1/2 flex flex-col items-center justify-center relative">
-            {/* Orange cover */}
-            <motion.div 
-              className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-r from-orange-400 via-orange-300 to-orange-500"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 0.9, delay: 0.2 }}
-            />
+            {/* Top menu */}
+            <div className="w-full pt-2 px-3 flex justify-between items-center text-white text-lg font-semibold z-10">
+              <div className="flex items-center space-x-4">
+                <Menu className="h-5 w-5" />
+                <div>Hi Brotastic</div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Bell className="h-5 w-5" />
+                <UserCircle className="h-5 w-5" />
+              </div>
+            </div>
 
             {/* Avatar */}
-            <div className="h-full box-border md:box-content p-4 z-10">
-              <motion.div 
-                className="w-full h-full rounded-full shadow-lg border-4 border-orange-400 overflow-hidden"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 1 }}
-              >
-                <img src="https://i.pravatar.cc/128" alt="Avatar" className="w-100 h-100 object-cover" />
-              </motion.div>
+            <div className="w-full py-2 flex justify-center z-10">
+              <div className="rounded-full shadow-xl border-4 border-orange-400 overflow-hidden">
+                <img src="https://i.pravatar.cc/128" alt="Avatar" className="w-36 h-36 object-cover" />
+              </div>
             </div>
 
-            <motion.h1 
-              className="text-logo"
-              initial={{ opacity: 0, scaleX: 0 }}
-              animate={{ opacity: 1, scaleX: 1 }}
-              transition={{ delay: 0.9 }}
-            >
-              Hey, Brotastic!
-            </motion.h1>
-
-            <motion.p 
-              className="mt-2 text-lg text-gray-600"
-              initial={{ opacity: 0, scaleX: 0 }}
-              animate={{ opacity: 1, scaleX: 1 }}
-              transition={{ delay: 0.7 }}
-            >
-              Ready to crush some habits?
-            </motion.p>
-
-            <motion.div 
-              className="mt-4 flex items-center space-x-4"
+            {/* Ready to crush some habits? */}
+            <motion.div
               initial={{ opacity: 0, y: 100 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9 }}
+              transition={{ delay: 1 }}
+              className="w-full pt-2 text-center z-10"
             >
-              <motion.div className="flex justify-between items-center space-x-4">
-
-                {/* Sparkles */}
-                <motion.div 
-                  className="flex flex-col items-center justify-center px-4 py-12 -my-10 space-y-2 w-full"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <div className="w-10 h-10 rounded-full bg-orange-400 flex items-center justify-center">
-                    <Check className="w-6 h-6 text-white" />
-                  </div>
-                  <span className="mt-1 text-sm font-medium text-gray-700">Sparkles</span>
-                  <span className="text-lg font-bold text-gray-800">7</span>
-                </motion.div>
-
-                {/* Trophy */}
-                <motion.div 
-                  className="flex flex-col items-center justify-center px-4 py-12 -my-10 space-y-2 w-full"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <div className="w-10 h-10 rounded-full bg-orange-400 flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-white" />
-                  </div>
-                  <span className="mt-1 text-sm font-medium text-gray-700">Coach</span>
-                  <span className="text-lg font-bold text-gray-800">12</span>
-                </motion.div>
-
-                {/* Zap */}
-                <motion.div 
-                  className="flex flex-col items-center justify-center px-4 py-12 -my-10 space-y-2 w-full"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <div className="w-10 h-10 rounded-full bg-orange-400 flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-white" />
-                  </div>
-                  <span className="mt-1 text-sm font-medium text-gray-700">Power</span>
-                  <span className="text-lg font-bold text-gray-800">+9000</span>
-                </motion.div>
-
-              </motion.div>
+              <h1 className="text-white font-bold text-l">READY TO CRASH SOME HABITS?</h1>
             </motion.div>
-
           </div>
-        </motion.div>
-      </div>
-
-      {/* End of 'Header' */}
-      {/* ____________________________ */}
-      {/* Start of MainContent */}
-
-      {/* Main Content wraper */}
-        <div className="rounded-t-3xl bg-white box-sizing overflow-y-auto md:box-content space-y-2 mt-6 pt-10 p-2 flex flex-col">
-
-          {/* Optional widget*/}
-          {isNotificationVisible && (
-            <Card>
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-center">
-                  <CardTitle>A widget the user can close</CardTitle>
-                  <Button variant="ghost" size="sm" onClick={() => setIsNotificationVisible(false)}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                <CardDescription className="text-gray-500">Upgrade before 11 Oct 2024 for 50% off</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-between items-start">
-                  <Button>
-                      Read more
-                    </Button>
-                  </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Habits Widget*/}
-          <Card className="mb-4 bg-white">
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-center">
-                <CardTitle>Habits</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setIsHabitsListOpen(true)} className="text-orange-600 hover:text-orange-700">
-                  View All <ChevronRight className="ml-1 h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-            <div className="flex justify-between items-center">
-              <h3 className="text-xl"> Completed 3/12 </h3>
-              <p className="text-xl font-bold">29%</p>
-            </div>
-            <Progress value={29} className="h-2 mt-4" />
-            </CardContent>
-          </Card>
-
-          {/* Todos Widget*/}
-          <Card className="mb-4 bg-white">
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-center">
-                <CardTitle>Todos</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setIsTodosListOpen(true)} className="text-orange-600 hover:text-orange-700">
-                  View All <ChevronRight className="ml-1 h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-            <div className="flex justify-between items-center">
-              <h3 className="text-xl"> Completed 8/10 </h3>
-              <p className="text-xl font-bold">80%</p>
-            </div>
-            <Progress value={80} className="h-2 mt-4" />
-            </CardContent>
-          </Card>
-
-          {/* Daily Summary Widget*/}
-          <Card className="mb-4">
-            <CardHeader className="pb-2">
-              <CardTitle>Daily Summary</CardTitle>
-              <CardDescription className="text-gray-500">AI-powered insights for your day</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-between mb-2">
-                <div className="flex items-center">
-                  <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
-                  <span className="text-sm text-gray-600">Completed tasks: 35</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle2 className="h-5 w-5 text-blue-500 mr-2" />
-                  <span className="text-sm text-gray-600">Completed habits: 17</span>
-                </div>
-              </div>
-              <p className="mt-2 text-sm text-gray-600">...</p>
-              <p className="mt-2 text-sm font-medium text-gray-700">Tomorrow's focus:</p>
-              <p className="text-sm text-gray-600">...</p>
-            </CardContent>
-          </Card>          
-
-          {/* Calendar Widget*/}
-          <Card className="mb-4">
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-center">
-                <CardTitle>Calendar</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setIsCalendarOpen(true)} className="text-gray-600 hover:text-gray-700">
-                  View Full <ChevronRight className="ml-1 h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-between">
-                {/* Calendar content goes here */}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Analytics Widget*/}
-          <Card className="mb-4">
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-center">
-                <CardTitle>Analytics</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setIsAnalyticsOpen(true)} className="text-gray-600 hover:text-gray-700">
-                  View Details <ChevronRight className="ml-1 h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Productivity Score</p>
-                  <p className="text-2xl font-bold text-orange-600">20%</p>
-                </div>
-                <div>
-                  <p className="text-sm  font-medium text-gray-500">Completion Rate</p>
-                  <p className="text-2xl font-bold text-green-600">76%</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Top Habit</p>
-                  <p className="text-lg font-semibold text-gray-700">Meditate</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Needs Improvement</p>
-                  <p className="text-lg font-semibold text-gray-700">Exercise</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
         </div>
+
+        {/* Sticky Top */}
+        <div className="sticky top-0 z-30">
+          <div className="container mx-auto w-[95%] py-3">
+            <div className="flex items-center border-y p-1 m-2 bg-white">
+              <Search className="ml-2 h-4 w-4 text-gray-500" />
+              <input
+                type="text"
+                placeholder="AI search"
+                className="flex-grow px-3 py-1 text-sm"
+              />
+              <Mic className="mr-2 h-4 w-4 text-gray-500" />
+            </div>
+          </div>
+          {/* White background that fades in */}
+          <div 
+            className="absolute inset-0 bg-white -z-10 transition-opacity duration-300"
+            style={{ opacity: scrollPosition > (headerHeight * 1) ? 1 : 0 }}
+          ></div>
+        </div>
+
+            {/* Widgets wraper */}
+        <div className="flex flex-col overflow-hidden w-full bg-white pt-6 px-3 space-y-3 rounded-t-xl">
+
+              {/* AI output Widget*/}
+              <Widget
+                title={''}
+                rightIcon={''}
+                className="relative overflow-hidden"
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: 100 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.2, type: "spring", stiffness: 100 }}
+                >
+                  {/* Carousel implementation */}
+                  <div className="relative">
+                    {/* Messages carousel */}
+                    <div 
+                      className="overflow-hidden"
+                      onTouchStart={handleTouchStart}
+                      onTouchMove={handleTouchMove}
+                      onTouchEnd={handleTouchEnd}
+                    >
+                      <div 
+                        className="flex transition-transform duration-300 ease-out"
+                        style={{ transform: `translateX(-${activeSlide * 100}%)` }}
+                      >
+                        {[
+                          {
+                            message: "Focus on completing your 'Morning Meditation' habit.",
+                            subtext: "Just 5 minutes can boost your daily focus"
+                          },
+                          {
+                            message: "20% increase in productivity observed",
+                            subtext: "Based on your previous patterns"
+                          },
+                          {
+                            message: "You're building a strong routine",
+                            subtext: "3 days streak! Keep it up!"
+                          }
+                        ].map((item, index) => (
+                          <div 
+                            key={index}
+                            className="flex-shrink-0 w-full"
+                          >
+                            <div className="flex flex-row">
+                              <Bot size={55} className="text-orange-400 pr-2" />
+                              <blockquote className="flex flex-col italic text-sm text-gray-400 border-l-4 border-orange-400 pl-2">
+                                <p className="text-sm text-gray-700 font-medium">
+                                  {item.message}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {item.subtext}
+                                </p>
+                              </blockquote> 
+                            </div>  
+                          </div> 
+                        ))}
+                      </div> 
+                    </div> 
+
+                    {/* Dot indicators */}
+                    <div className="flex justify-center gap-1.5 mt-2">
+                      {[0, 1, 2].map((index) => (
+                        <button
+                          key={index}
+                          onClick={() => setActiveSlide(index)}
+                          className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                            activeSlide === index ? 'bg-orange-400 w-3' : 'bg-orange-200'
+                          }`}
+                        />
+                      ))}
+                    </div> 
+                  </div> 
+                </motion.div>
+              </Widget> 
+
+            {/* Habits Widget*/}
+            <Widget title="Today's Habits" onClick={() => {}}>
+              <div className="flex items-end justify-between mb-2">
+                <div>
+                  <p className="text-sm text-gray-400">Completed</p>
+                  <p className="text-xl font-bold">8/10</p>
+                </div>
+                <p className="text-4xl font-bold">80%</p>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="h-full rounded-full bg-gradient-to-br from-gray-200 via-gray-300 to-gray-400"
+                  style={{ width: '80%', transition: 'width 1s ease-in-out' }}
+                />
+              </div>
+            </Widget>
+
+            {/* Todos Widget*/}
+            <Widget title="Today's Todos" onClick={() => {}}>
+              <div className="flex items-end justify-between mb-2">
+                <div>
+                  <p className="text-sm text-gray-400">Completed</p>
+                  <p className="text-xl font-bold">3/12</p>
+                </div>
+                <p className="text-4xl font-bold">29%</p>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="h-full rounded-full bg-gradient-to-br from-gray-200 via-gray-300 to-gray-400"
+                  style={{ width: '29%', transition: 'width 1s ease-in-out' }}
+                />
+              </div>
+            </Widget>
+
+            {/* Quick Input widget*/}
+            <Widget title="Quick Input" onClick={() => {}}>
+              <div className="mb-4">
+                <p className="mb-2 text-sm text-gray-400">How are you feeling today?</p>
+                <div className="flex space-x-4">
+                  {[
+                    { icon: Smile, mood: 'happy', color: 'text-green-500' },
+                    { icon: Meh, mood: 'neutral', color: 'text-yellow-500' },
+                    { icon: Frown, mood: 'sad', color: 'text-red-500' },
+                  ].map(({ icon: Icon, mood: m, color }) => (
+                    <button
+                      key={m}
+                      onClick={() => setMood(m)}
+                      className={`p-2 rounded-full transition-all duration-200 ${
+                        mood === m ? `${color} bg-gray-100` : 'text-gray-400'
+                      }`}
+                    >
+                      <Icon size={24} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="mb-2 text-sm text-gray-400">Quick note or goal for today:</p>
+                <div className="flex">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    className="px-2 py-2 text-sm border border-gray-300 rounded-l-full focus:outline-none focus:ring-2 focus:ring-orange-300"
+                    placeholder="Type here..."
+                  />
+                  <button className="bg-orange-400 text-sm text-white px-2 py-2 rounded-r-full hover:bg-orange-600 transition-colors duration-200 flex items-center">
+                    <Send size={14} className="mr-1" />
+                    Send
+                  </button>
+                </div>
+              </div>
+            </Widget>
+
+            {/* Announcement widget*/}
+            {showAnnouncement && (
+              <Widget 
+                className="relative overflow-hidden"
+                title="Limited Time Offer!"
+                rightIcon={
+                  <button 
+                    className="absolute top-4 right-4 text-orange-400 hover:text-orange-600"
+                    onClick={(e) => {
+                      e.stopPropagation();  // Prevents triggering any parent onClick handlers
+                      setShowAnnouncement(false);
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
+                }
+              >
+                <p className="text-sm text-gray-400">
+                  Upgrade to Premium and get 3 months free. Unlock advanced habit tracking features!
+                </p>
+                <div className="mt-2">
+                  <button className="bg-orange-400 text-sm text-white px-4 py-2 rounded-full hover:bg-orange-600 transition-colors duration-200">
+                    Upgrade Now
+                  </button>
+                </div>
+                <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-gray-100 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500 ease-out" />
+              </Widget>
+            )
+          }
+        </div>
+        {/* End of Widgets wrapper */}
+
       </div>
+    </div>  
+    // End of main
   )
 }
